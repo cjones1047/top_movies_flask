@@ -5,12 +5,17 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FloatField
 from wtforms.validators import DataRequired, NumberRange
 import requests
+import dotenv
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///movie_collection.db"
 db = SQLAlchemy(app)
+
+dotenv.load_dotenv()
+tmdb_api_key = os.getenv("TMDB_API_KEY")
 
 
 class Movie(db.Model):
@@ -50,9 +55,14 @@ def home():
 def add_movie():
     form = AddMovieForm()
     if form.validate_on_submit():
-        # code for what to do after form validation goes here:
+        tmdb_api_url = (f"https://api.themoviedb.org/3/search/movie?api_key={tmdb_api_key}&language=en-US&page=1&"
+                        f"include_adult=false&query={form.title.data}")
+        tmdb_api_response = requests.get(tmdb_api_url)
+        tmdb_api_response.raise_for_status()
+        tmdb_json = tmdb_api_response.json()
+        tmdb_movie_list = tmdb_json["results"]
 
-        return redirect(url_for('home'))
+        return render_template('select.html', searched_movies=tmdb_movie_list)
 
     return render_template('add.html', form=form)
 
