@@ -23,9 +23,9 @@ class Movie(db.Model):
     title = db.Column(db.String(250), unique=True, nullable=False)
     year = db.Column(db.String(250), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    rating = db.Column(db.Float, nullable=False)
-    ranking = db.Column(db.Integer, nullable=False)
-    review = db.Column(db.String(250), nullable=False)
+    rating = db.Column(db.Float, nullable=True)
+    ranking = db.Column(db.Integer, nullable=True)
+    review = db.Column(db.String(250), nullable=True)
     img_url = db.Column(db.String(250), nullable=False)
 
     def __repr__(self):
@@ -65,6 +65,31 @@ def add_movie():
         return render_template('select.html', searched_movies=tmdb_movie_list)
 
     return render_template('add.html', form=form)
+
+
+@app.route("/create_movie_in_db/<tmdb_movie_id>", methods=["GET", "POST"])
+def create_movie_in_db(tmdb_movie_id):
+    # get movie details from TMDB API in JSON
+    tmdb_movie_details_url = (f"https://api.themoviedb.org/3/movie/{tmdb_movie_id}?"
+                              f"api_key={tmdb_api_key}&language=en-US")
+    tmdb_movie_details_response = requests.get(tmdb_movie_details_url)
+    tmdb_movie_details_response.raise_for_status()
+    tmdb_movie_details_json = tmdb_movie_details_response.json()
+
+    # add selected fields from JSON to database
+    new_movie = Movie(
+        title=tmdb_movie_details_json["title"],
+        year=tmdb_movie_details_json["release_date"][:4],
+        description=tmdb_movie_details_json["overview"],
+        img_url=f'https://image.tmdb.org/t/p/original{tmdb_movie_details_json["poster_path"]}'
+    )
+    db.session.add(new_movie)
+    db.session.commit()
+
+    # query movie just added to database by movie title to be passed to edit_movie route
+    movie_recently_created = Movie.query.filter_by(title=tmdb_movie_details_json["title"]).first()
+
+    return redirect(url_for('edit_movie', movie_id=movie_recently_created.id))
 
 
 @app.route("/edit_movie/<movie_id>", methods=["GET", "POST"])
