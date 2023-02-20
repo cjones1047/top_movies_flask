@@ -98,7 +98,7 @@
 	 transition: ease-in-out 600ms;
 }
  .front {
-	 background-size: cover;
+	 background-size: 100% 100%;
 	 padding: 2rem;
 	 font-size: 1.618rem;
 	 font-weight: 600;
