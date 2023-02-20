@@ -54,5 +54,13 @@ def edit_movie(movie_id):
     return render_template('edit.html', form=form)
 
 
+@app.route("/delete_movie/<movie_id>")
+def delete_movie(movie_id):
+    movie_to_delete = db.session.get(Movie, movie_id)
+    db.session.delete(movie_to_delete)
+    db.session.commit()
+    return redirect(url_for('home'))
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=8000, debug=True)
