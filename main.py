@@ -34,11 +34,27 @@ class RateMovieForm(FlaskForm):
     submit = SubmitField('Change Rating')
 
 
+class AddMovieForm(FlaskForm):
+    title = StringField('Movie Title', validators=[DataRequired()], render_kw={"placeholder": 'enter a movie title'})
+    submit = SubmitField('Add Movie')
+
+
 @app.route("/")
 def home():
     movies = db.session.query(Movie).all()
 
     return render_template("index.html", movies=movies)
+
+
+@app.route("/add_movie", methods=["GET", "POST"])
+def add_movie():
+    form = AddMovieForm()
+    if form.validate_on_submit():
+        # code for what to do after form validation goes here:
+
+        return redirect(url_for('home'))
+
+    return render_template('add.html', form=form)
 
 
 @app.route("/edit_movie/<movie_id>", methods=["GET", "POST"])
