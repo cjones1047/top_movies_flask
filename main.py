@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc, asc
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FloatField
 from wtforms.validators import DataRequired, NumberRange
@@ -46,7 +47,11 @@ class AddMovieForm(FlaskForm):
 
 @app.route("/")
 def home():
-    movies = db.session.query(Movie).all()
+    movies = db.session.query(Movie).order_by(desc(Movie.rating))
+    for idx, movie in enumerate(movies):
+        if movie.ranking != idx + 1:
+            movie.ranking = idx + 1
+    db.session.commit()
 
     return render_template("index.html", movies=movies)
 
